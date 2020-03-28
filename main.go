@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-
+	// key.json = google service accont
 	key, _ := ioutil.ReadFile("key.json")
 
 	jwtConf, err := google.JWTConfigFromJSON(
@@ -23,55 +23,15 @@ func main() {
 	svc, err := analytics.New(httpClient)
 	p(err)
 
-	accountResponse, err := svc.Management.Accounts.List().Do()
-	p(err)
+	fmt.Println("retrieve the real time users of this profile")
 
-	var accountId string
-	fmt.Println(accountId)
-	fmt.Println("Found the following accounts:")
-	for i, acc := range accountResponse.Items {
+	metrics := "rt:pageviews"
+	dimensions := "rt:minutesAgo,rt:pagePath"
+	query := svc.Data.Realtime.Get("ga:214630239", metrics)
+	query.Dimensions(dimensions)
+	query.Sort("rt:minutesAgo")
 
-		if i == 0 {
-			accountId = acc.Id
-		}
-
-		fmt.Println(acc.Id, acc.Name)
-	}
-
-	webProps, err := svc.Management.Webproperties.List(accountId).Do()
-	p(err)
-
-	var wpId string
-
-	fmt.Println("\nFound the following properties:")
-	for i, wp := range webProps.Items {
-
-		if i == 0 {
-			wpId = wp.Id
-		}
-
-		fmt.Println(wp.Id, wp.Name)
-	}
-
-	profiles, err := svc.Management.Profiles.List(accountId, wpId).Do()
-	p(err)
-
-	var viewId string
-
-	fmt.Println("\nFound the following profiles:")
-	for i, p := range profiles.Items {
-
-		if i == 0 {
-			viewId = "ga:" + p.Id
-		}
-
-		fmt.Println(p.Id, p.Name)
-	}
-
-	fmt.Println("\nTime to retrieve the real time users of this profile")
-
-	metrics := "rt:activeUsers"
-	rt, err := svc.Data.Realtime.Get(viewId, metrics).Do()
+	rt, err := query.Do()
 	p(err)
 
 	fmt.Println(rt.Rows)

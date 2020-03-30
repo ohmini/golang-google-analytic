@@ -47,12 +47,21 @@ func main() {
 	query = query.Dimensions(dimensions)
 	query = query.Sort("rt:minutesAgo")
 
+	updateEvery10Minutes(query, db)
+}
+
+func updateEvery10Minutes(query *analytics.DataRealtimeGetCall, db *sql.DB) {
+	for t := range time.Tick(time.Minute) {
+		_ = t
+		updatePageviews(query, db)
+	}
+}
+
+func updatePageviews(query *analytics.DataRealtimeGetCall, db *sql.DB) {
 	rt, err := query.Do()
 	p(err)
 
-	fmt.Println(rt.Rows)
 	views := calPageviews(rt.Rows)
-	fmt.Println(views)
 
 	for k, v:= range views {
 		updateOrInsertViews(k, v, db)

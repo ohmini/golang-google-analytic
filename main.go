@@ -51,10 +51,31 @@ func main() {
 	p(err)
 
 	fmt.Println(rt.Rows)
-	calPageviews(rt.Rows)
+	views := calPageviews(rt.Rows)
+	fmt.Println(views)
+
+	for k, v:= range views {
+		updateOrInsertViews(k, v, db)
+	}
 }
 
-func calPageviews(data [][]string ) {
+func updateOrInsertViews(id string, views int, db *sql.DB) error {
+	// use function for insert or update rows
+	query := `
+		SELECT update_content_analytics($1, $2);
+	`
+	_, err := db.Query(query, id, views)
+
+	if err != nil {
+		return fmt.Errorf("Error database query execution> %v", err)
+	}
+
+	fmt.Println("update success.")
+	return nil
+
+}  
+
+func calPageviews(data [][]string ) map[string]int {
 	views := make(map[string]int)
 	for i:= range data {
 		title := data[i][1]
@@ -74,7 +95,7 @@ func calPageviews(data [][]string ) {
 			}
 		}
 	}
-	fmt.Println(views)
+	return views
 }
 
 func p(err error) {
@@ -88,7 +109,7 @@ func connectDb() (*sql.DB, error) {
 	for {
 		db, err := sql.Open(
 			"postgres",
-			os.ExpandEnv("host=localhost user=postgres dbname=true4u sslmode=disable"),
+			os.ExpandEnv("host=localhost user=postgres password=1234 dbname=true4u sslmode=disable"),
 		)
 
 		if err != nil {

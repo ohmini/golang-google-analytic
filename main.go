@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 	"strconv"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -57,16 +58,19 @@ func calPageviews(data [][]string ) {
 	views := make(map[string]int)
 	for i:= range data {
 		title := data[i][1]
+		paths := strings.Split(strings.TrimSpace(title), "/")
+		if paths[1] != "uncategorized" {
+			continue
+		}
 		
-
 		pageviews := data[i][2]
 		v, err := strconv.Atoi(pageviews)
 		if err == nil {
-			total, ok := views[title]
+			total, ok := views[paths[2]]
 			if ok {
-				views[title] = total + v
+				views[paths[2]] = total + v
 			} else {
-				views[title] = v
+				views[paths[2]] = v
 			}
 		}
 	}

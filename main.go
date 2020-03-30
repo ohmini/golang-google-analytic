@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"strconv"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -49,10 +50,27 @@ func main() {
 	p(err)
 
 	fmt.Println(rt.Rows)
+	calPageviews(rt.Rows)
 }
 
-func waitForMinutes() {
+func calPageviews(data [][]string ) {
+	views := make(map[string]int)
+	for i:= range data {
+		title := data[i][1]
+		
 
+		pageviews := data[i][2]
+		v, err := strconv.Atoi(pageviews)
+		if err == nil {
+			total, ok := views[title]
+			if ok {
+				views[title] = total + v
+			} else {
+				views[title] = v
+			}
+		}
+	}
+	fmt.Println(views)
 }
 
 func p(err error) {
